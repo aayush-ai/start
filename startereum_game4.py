@@ -1,5 +1,7 @@
-
-
+#!/usr/bin/env python
+#attempt 1: serverless lambda, and dynamodb: issues with webhook and telegram api
+#attempt 2: ec2 and sqlite: issues with concurrent calls and dB locks
+#this game initializes the game set 
 #### SQLITE BRANCH ####
 import sys
 import sqlite3
@@ -78,9 +80,54 @@ def checkUser(update, user_data):
         c=cur.execute('''SELECT twr3_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
         user_data['twr3_pick']=c[0]
         c=cur.execute('''SELECT twr3_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        
         user_data['twr3_stake']=c[0]
-        c=cur.execute('''SELECT total_balance FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
-        user_data['total_balance']=c[0]
+        c=cur.execute('''SELECT twr3_feed FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr3_feed']=c[0]
+    
+        c=cur.execute('''SELECT gk1_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        
+        user_data['gk1_pick']=c[0]
+        c=cur.execute('''SELECT twr4_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr4_pick']=c[0]
+        c=cur.execute('''SELECT twr4_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr4_stake']=c[0]
+        
+        c=cur.execute('''SELECT twr4_feed FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr4_feed']=c[0]
+        c=cur.execute('''SELECT verify1_text FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['verify1_text']=c[0]
+        
+        c=cur.execute('''SELECT twr5_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr5_pick']=c[0]
+        c=cur.execute('''SELECT twr5_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        
+        user_data['twr5_stake']=c[0]
+        c=cur.execute('''SELECT twr5_feed FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr5_feed']=c[0]
+        c=cur.execute('''SELECT gk2_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['gk2_pick']=c[0]
+        c=cur.execute('''SELECT twr6_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr6_pick']=c[0]
+        c=cur.execute('''SELECT twr6_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr6_stake']=c[0]
+        c=cur.execute('''SELECT gk3_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['gk3_pick']=c[0]
+        c=cur.execute('''SELECT twr7_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr7_pick']=c[0]
+        c=cur.execute('''SELECT twr7_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['twr7_stake']=c[0]
+        c=cur.execute('''SELECT feed_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['feed_pick']=c[0]
+        c=cur.execute('''SELECT priv_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['priv_pick']=c[0]
+        c=cur.execute('''SELECT frnd_email FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['frnd_email']=c[0]
+        c=cur.execute('''SELECT priv_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
+        user_data['feed_text']=c[0]
+        
+
+    
         print('Past user')
 
     else:
@@ -109,6 +156,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, RegexHandler, MessageHandler, Filters, ConversationHandler
 import logging
 
+## declare all the list of all games in a game set.
 twr_game_questions= ['TWR 1: Which project is more innovative?',
     'TWR 2: Which project is more likely to execute its vision? ',
     'TWR 3: Which project appears more credible?',
@@ -134,28 +182,22 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-
-
+#global keyboards
 
 markup = ReplyKeyboardMarkup([['Enter Email Address'],['Check Token Balance'],
                   ['End Game and Submit']], one_time_keyboard=True)
 markup1 = ReplyKeyboardMarkup([['How to Play'],['Start the Game']], one_time_keyboard=True)
 
 
+#there are three types of games
+
 def start(bot, update, user_data):
-
     checkUser(update, user_data)
-    #if checkUser(update, user_data) == "New User":
+    if checkUser(update, user_data) == "New User":
     update.message.reply_text("Hola Cypherpunk!\nEnter your email ID to receive your playing balance:")
-
-
-
-
-    #else:
-        #update.message.reply_text("Welcome back, {}!\nAre you ready for another round?".format(update.effective_user.first_name),reply_markup=markup1)
-        #return CHOOSING_INLINE
-
-
+    else:
+        update.message.reply_text("Welcome back, {}!\nAre you ready for another round?".format(update.effective_user.first_name),reply_markup=markup1)
+        
 def email(bot, update, user_data):
 
     text = update.message.text
@@ -165,9 +207,6 @@ def email(bot, update, user_data):
     update.message.reply_text("Okay, you now have 100 startereum tokens to play with.\n\nIf you have already been allocated startereums in the past, these will be credited to your account after a delay.\n\nYou will receive an update on your email: "
                               "{}".format(text), reply_markup=markup1)
 
-
-
-
 def how_play(bot,update, user_data):
 
     text = update.message.text
@@ -175,12 +214,12 @@ def how_play(bot,update, user_data):
         update.message.reply_text(text= "{}, let's review the basics. Hit start when done!".format(update.effective_user.first_name),reply_markup=markup1)
         bot.sendDocument(chat_id=update.effective_message.chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
 
-
 def twr_start(bot, update, user_data):
 
     global twr_game_questions
     global twr_game_photos
     reply_markup_twr = InlineKeyboardMarkup([[InlineKeyboardButton("Project A", callback_data='Project A'),InlineKeyboardButton("Project B", callback_data='Project B')]])
+    markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
 
     if user_data['twr1_pick'] == None:
         text = twr_game_questions[0]
@@ -188,24 +227,118 @@ def twr_start(bot, update, user_data):
         update.message.reply_text(text=text, reply_markup=reply_markup_twr)
         bot.send_photo(update.effective_message.chat_id, photo=photo)
 
+    #receiving project pick    
+        text = str(update.callback_query.data)
+        category = 'twr1_pick'
+        user_data[category] = text
+        updateUser(category, text, update)
+        update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
 
-    elif user_data ['twr2_pick'] == None:
+    #receiving token stoke 
+        category = 'twr1_stake'
+        user_data['twr1_stake'] = text
+        updateUser(category, text, update)
+        total = int(user_data['total_balance'])
+        last_stake = int(text)
+        text = total - last_stake
+        category = 'total_balance'
+        user_data['total_balance'] = text
+        updateUser(category, text, update)
+        twr_start(bot, update, user_data)
+
+        
+        
+    elif user_data['twr2_pick'] == None:
         text = twr_game_questions[1]
         photo = twr_game_photos[1]
         update.message.reply_text(text=text, reply_markup=reply_markup_twr)
         bot.send_photo(update.effective_message.chat_id, photo=photo)
 
-    elif user_data ['twr3_pick'] == None:
+    elif user_data['twr3_pick'] == None:
         text = twr_game_questions[2]
         photo = twr_game_photos[2]
         update.message.reply_text(text=text, reply_markup=reply_markup_twr)
         bot.send_photo(update.effective_message.chat_id, photo=photo)
 
+    elif user_data['twr3_feed'] == None:
+        
+    elif user_data['gk1_pick'] == None:
+
+    elif user_data['twr4_pick'] == None: 
+        text = twr_game_questions[3]
+        photo = twr_game_photos[3]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+        
+    elif user_data['twr4_stake'] == None: 
+        
+    elif user_data['twr4_feed'] == None:
+
+    elif user_data['verify1_text'] == None:
+
+    elif user_data['twr5_pick'] == None:
+        text = twr_game_questions[3]
+        photo = twr_game_photos[3]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+        
+    elif user_data['twr5_stake'] == None:
+
+    elif user_data['twr5_feed'] == None:
+    
+    elif user_data['gk2_pick'] == None:
+
+    elif user_data['twr6_pick'] == None:
+        text = twr_game_questions[3]
+        photo = twr_game_photos[3]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+        
+    elif user_data['twr6_stake'] == None:
+        
+    elif user_data['gk3_pick'] == None:
+
+    elif user_data['twr7_pick'] == None: 
+        text = twr_game_questions[3]
+        photo = twr_game_photos[3]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+        
+    elif user_data['twr7_stake'] == None:
+        
+    elif user_data['feed_pick'] == None:
+        
+    elif user_data['priv_pick'] == None: 
+        
+    elif user_data['frnd_email'] == None:
+        
+    elif user_data['feed_text'] == None: 
+        
+    elif user_data ['twr4_pick'] == None:
+        text = twr_game_questions[2]
+        photo = twr_game_photos[2]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+    elif user_data ['twr5_pick'] == None:
+        text = twr_game_questions[2]
+        photo = twr_game_photos[2]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+    elif user_data ['twr6_pick'] == None:
+        text = twr_game_questions[2]
+        photo = twr_game_photos[2]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+    elif user_data ['twr7_pick'] == None:
+        text = twr_game_questions[2]
+        photo = twr_game_photos[2]
+        update.message.reply_text(text=text, reply_markup=reply_markup_twr)
+        bot.send_photo(update.effective_message.chat_id, photo=photo)
+    
 
 def twr_pick(bot, update, user_data):
 
     markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-
 
     if user_data['twr1_pick'] == None:
         text = str(update.callback_query.data)
@@ -214,7 +347,48 @@ def twr_pick(bot, update, user_data):
         updateUser(category, text, update)
         update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
 
-        del user_data['twr1_pick']
+    elif user_data['twr2_pick'] == None:
+        text = str(update.callback_query.data)
+        category = 'twr2_pick'
+        user_data[category] = text
+        updateUser(category, text, update)
+        update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif user_data['twr1_pick'] == None:
+        text = str(update.callback_query.data)
+        category = 'twr1_pick'
+        user_data[category] = text
+        updateUser(category, text, update)
+        update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+if user_data['twr1_pick'] == None:
+    text = str(update.callback_query.data)
+    category = 'twr1_pick'
+    user_data[category] = text
+    updateUser(category, text, update)
+    update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+if user_data['twr1_pick'] == None:
+    text = str(update.callback_query.data)
+    category = 'twr1_pick'
+    user_data[category] = text
+    updateUser(category, text, update)
+    update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+if user_data['twr1_pick'] == None:
+    text = str(update.callback_query.data)
+    category = 'twr1_pick'
+    user_data[category] = text
+    updateUser(category, text, update)
+    update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+if user_data['twr1_pick'] == None:
+    text = str(update.callback_query.data)
+    category = 'twr1_pick'
+    user_data[category] = text
+    updateUser(category, text, update)
+    update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
 
     elif user_data['twr2_pick'] == None:
         value = update.callback_query.data
@@ -231,30 +405,13 @@ def twr_pick(bot, update, user_data):
         updateUserCallback(category, value, update)
         update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(value), reply_markup=markup2)
 
-
-
-
-
-
 def twr_stake(bot, update, user_data):
 
     text = update.message.text
 
     if user_data['twr1_stake'] == 0:
 
-        category = 'twr1_stake'
-        user_data['twr1_stake'] = text
-        updateUser(category, text, update)
-        total = int(user_data['total_balance'])
-        last_stake = int(text)
-        text = total - last_stake
-        category = 'total_balance'
-        user_data['total_balance'] = text
-        updateUser(category, text, update)
-        twr_start(bot, update, user_data)
-
-
-
+        
     elif user_data['twr2_stake'] == 0:
 
         category = 'twr2_stake'
@@ -283,11 +440,7 @@ def twr_stake(bot, update, user_data):
 
     return twr_start(bot, update, user_data)
 
-
 #twr_games
-
-
-
 def regular_choice(bot, update, user_data):
     text = update.message.text
     update.message.reply_text('Your {}? Yes, I would love to hear about that!'.format(text.lower()))
@@ -306,7 +459,6 @@ def regular_choice(bot, update, user_data):
                                 #  facts_to_str(user_data)), reply_markup=markup)
     #return CHOOSING
 
-
 def done(bot, update, user_data):
     if 'email' in user_data:
         del user_data['email']
@@ -314,7 +466,6 @@ def done(bot, update, user_data):
     update.message.reply_text("I learned these facts about you:"
                               "{}"
                               "Until next time!".format(facts_to_str(user_data)))
-
     user_data.clear()
 
 
@@ -324,30 +475,23 @@ def error(bot, update, error):
 
 def main():
     # Create the Updater and pass it your bot's token.
-    updater = Updater("604744099:AAHImp03yylJO8Qjod3bfhEw5AmmV2fDK4w")
+    updater = Updater("Telegram_token")
     print("Connection to Telegram established; starting bot.")
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
-
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
-
     dp.add_handler(CommandHandler('start', start, pass_user_data=True))
     dp.add_handler(RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email, pass_user_data=True))
 
     dp.add_handler(CallbackQueryHandler(twr_pick, pattern=r"Project"))
 
-    dp.add_handler(RegexHandler('^[1-2]?[0-9]$|^2[0]$', twr_stake, pass_user_data=True))
+    dp.add_handler(RegexHandler('^[1-2]?[3-9]$|^2[0]$', twr_stake, pass_user_data=True))
     dp.add_handler(RegexHandler('^Start the Game$', twr_start, pass_user_data=True))
     dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
-
-
-
     # log all errors
     dp.add_error_handler(error)
-
     # Start the Bot
     updater.start_polling()
-
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
