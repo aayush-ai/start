@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
-"""
-
 #### SQLITE BRANCH ####
 import sys
 import sqlite3
 
 def loadDB():
     # Creates SQLite database to store info.
-    conn = sqlite3.connect('game5.sqlite', timeout=60)
+    conn = sqlite3.connect('game5.sqlite', timeout=10)
     cur = conn.cursor()
     conn.text_factory = str
     cur.executescript('''CREATE TABLE IF NOT EXISTS userdata
@@ -70,12 +68,10 @@ def checkUser(update, user_data):
         c=cur.execute('''SELECT email FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
         user_data['email']=c[0]
         c=cur.execute('''SELECT twr1_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
-        conn.commit()
         user_data['twr1_pick']=c[0]
         c=cur.execute('''SELECT twr1_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
         user_data['twr1_stake']=c[0]
         c=cur.execute('''SELECT twr2_pick FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
-        conn.commit()
         user_data['twr2_pick']=c[0]
         c=cur.execute('''SELECT twr2_stake FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
         user_data['twr2_stake']=c[0]
@@ -86,10 +82,10 @@ def checkUser(update, user_data):
         c=cur.execute('''SELECT total_balance FROM userdata WHERE id = ?''', (update.message.from_user.id,)).fetchone()
         user_data['total_balance']=c[0]
         print('Past user')
-        conn.commit()
+
     else:
-        cur.execute('''INSERT INTO userdata (id, firstname) VALUES (?, ?)''', \
-        (update.message.from_user.id, update.message.from_user.first_name))
+        cur.execute('''INSERT OR IGNORE INTO userdata (id, firstname) VALUES (?, ?)''', \
+        (update.message.from_user.id, update.message.from_user.first_name,))
 
         print('New user')
     conn.commit()
@@ -102,7 +98,7 @@ def updateUser(category, text, update):
     conn.text_factory = str
     # Update SQLite database as needed.
     cur.execute('''UPDATE OR IGNORE userdata SET {} = ? WHERE id = ?'''.format(category), \
-    (text, update.message.from_user.id))
+        (text, update.effective_message.from_user.id,))
     conn.commit()
     conn.close()
 
@@ -138,7 +134,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-TYPING_EMAIL, CHOOSING, CHOOSING_STAKE, CHOOSING_INLINE, TYPING_CHOICE = range(5)
+TYPING_CHOICE = range(1)
 
 
 markup = ReplyKeyboardMarkup([['Enter Email Address'],['Check Token Balance'],
@@ -154,7 +150,7 @@ def start(bot, update, user_data):
 
 
 
-    return TYPING_EMAIL
+
     #else:
         #update.message.reply_text("Welcome back, {}!\nAre you ready for another round?".format(update.effective_user.first_name),reply_markup=markup1)
         #return CHOOSING_INLINE
@@ -166,23 +162,20 @@ def email(bot, update, user_data):
     category = 'email'
     user_data[category] = text
     updateUser(category, text, update)
-    del user_data['email']
-
     update.message.reply_text("Okay, you now have 100 startereum tokens to play with.\n\nIf you have already been allocated startereums in the past, these will be credited to your account after a delay.\n\nYou will receive an update on your email: "
                               "{}".format(text), reply_markup=markup1)
 
-    return CHOOSING
+
 
 
 def how_play(bot,update, user_data):
 
-    chat_id = update.effective_message.chat_id
     text = update.message.text
     if text == 'How to Play':
         update.message.reply_text(text= "{}, let's review the basics. Hit start when done!".format(update.effective_user.first_name),reply_markup=markup1)
-        bot.sendDocument(chat_id=chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
+        bot.sendDocument(chat_id=update.effective_message.chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
 
-    return CHOOSING_INLINE
+
 
 
 def facts_to_str(user_data):
@@ -197,7 +190,6 @@ def twr_start(bot, update, user_data):
 
     global twr_game_questions
     global twr_game_photos
-    facts_to_str(user_data)
     reply_markup_twr = InlineKeyboardMarkup([[InlineKeyboardButton("Project A", callback_data='Project A'),InlineKeyboardButton("Project B", callback_data='Project B')]])
 
     if user_data['twr1_pick'] == None:
@@ -223,13 +215,15 @@ def twr_start(bot, update, user_data):
 def twr_pick(bot, update, user_data):
 
     markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-    print(update.effective_message.from_user.id)
+
+
     if user_data['twr1_pick'] == None:
-        text = update.callback_query.data
+        text = str(update.callback_query.data)
         category = 'twr1_pick'
         user_data[category] = text
-        update.callback_query.message.reply_text(text="Token Left: " + str(usser_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
         updateUser(category, text, update)
+        update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
         del user_data['twr1_pick']
 
     elif user_data['twr2_pick'] == None:
@@ -254,21 +248,21 @@ def twr_pick(bot, update, user_data):
 
 def twr_stake(bot, update, user_data):
 
+    text = update.message.text
+
     if user_data['twr1_stake'] == 0:
-        text = update.message.text
+
         category = 'twr1_stake'
         user_data['twr1_stake'] = text
         updateUser(category, text, update)
+        total = int(user_data['total_balance'])
+        last_stake = int(text)
+        text = total - last_stake
+        category = 'total_balance'
+        user_data['total_balance'] = text
+        updateUser(category, text, update)
+        twr_start(bot, update, user_data)
 
-        #total = int(user_data['total_balance'])
-        #last_stake = int(text)
-        #value = total - last_stake
-        #category = 'total_balance'
-        #user_data['total_balance'] = value
-        #updateUserCallback(category, value, update)
-        #twr_start(bot, update, user_data)
-
-        print (text)
 
 
     elif user_data['twr2_stake'] == 0:
@@ -296,6 +290,8 @@ def twr_stake(bot, update, user_data):
         user_data['total_balance'] = text
         updateUser(category, text, update)
         twr_start(bot, update, user_data)
+
+    return twr_start(bot, update, user_data)
 
 
 #twr_games
@@ -348,31 +344,24 @@ def main():
         entry_points=[CommandHandler('start', start, pass_user_data=True)],
 
         states={
-            CHOOSING: [RegexHandler('^How to Play$',
-                                    how_play,
-                                    pass_user_data=True),
-                            ],
-            CHOOSING_INLINE: [RegexHandler('^Start the Game$', twr_start, pass_user_data=True),
 
-                            ],
+
 
             TYPING_CHOICE: [MessageHandler(Filters.text,
                                            regular_choice,
                                            pass_user_data=True),
                             ],
-            TYPING_EMAIL: [RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email,
-                                           pass_user_data=True),
-                            ],
-
-            CHOOSING_STAKE: [RegexHandler('\d+', twr_stake, pass_user_data=True),
-                            ],
-        },
+            },
 
         fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
     )
 
     dp.add_handler(conv_handler)
     dp.add_handler(CallbackQueryHandler(twr_pick, pattern=r"Project", pass_user_data=True))
+    dp.add_handler(RegexHandler('\d+', twr_stake, pass_user_data=True))
+    dp.add_handler(RegexHandler('^Start the Game$', twr_start, pass_user_data=True))
+    dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
+    dp.add_handler(RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email , pass_user_data=True))
     dp.add_handler(RegexHandler('\d+', twr_stake, pass_user_data=True))
 
     # log all errors
