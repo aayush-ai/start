@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 
 #### SQLITE BRANCH ####
 import sys
@@ -134,7 +134,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-TYPING_CHOICE = range(1)
+
 
 
 markup = ReplyKeyboardMarkup([['Enter Email Address'],['Check Token Balance'],
@@ -175,16 +175,6 @@ def how_play(bot,update, user_data):
         update.message.reply_text(text= "{}, let's review the basics. Hit start when done!".format(update.effective_user.first_name),reply_markup=markup1)
         bot.sendDocument(chat_id=update.effective_message.chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
 
-
-
-
-def facts_to_str(user_data):
-    results = list()
-
-    for key, value in user_data.items():
-        results.append('{} - {}'.format(key, value))
-
-    return "\n".join(results).join(['\n', '\n'])
 
 def twr_start(bot, update, user_data):
 
@@ -241,7 +231,7 @@ def twr_pick(bot, update, user_data):
         updateUserCallback(category, value, update)
         update.callback_query.message.reply_text(text="Token Left: " + str(user_data['total_balance']) + "\n Please stake tokens for {}".format(value), reply_markup=markup2)
 
-    return CHOOSING_STAKE
+
 
 
 
@@ -301,7 +291,7 @@ def twr_stake(bot, update, user_data):
 def regular_choice(bot, update, user_data):
     text = update.message.text
     update.message.reply_text('Your {}? Yes, I would love to hear about that!'.format(text.lower()))
-    return TYPING_REPLY
+
 #has entered
 #def received_information(bot, update, user_data):
     #text = update.message.text
@@ -326,7 +316,7 @@ def done(bot, update, user_data):
                               "Until next time!".format(facts_to_str(user_data)))
 
     user_data.clear()
-    return ConversationHandler.END
+
 
 def error(bot, update, error):
     """Log Errors caused by Updates."""
@@ -340,29 +330,17 @@ def main():
     dp = updater.dispatcher
 
     # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start, pass_user_data=True)],
 
-        states={
+    dp.add_handler(CommandHandler('start', start, pass_user_data=True))
+    dp.add_handler(RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email, pass_user_data=True))
 
+    dp.add_handler(CallbackQueryHandler(twr_pick, pattern=r"Project"))
 
-
-            TYPING_CHOICE: [MessageHandler(Filters.text,
-                                           regular_choice,
-                                           pass_user_data=True),
-                            ],
-            },
-
-        fallbacks=[RegexHandler('^Done$', done, pass_user_data=True)]
-    )
-
-    dp.add_handler(conv_handler)
-    dp.add_handler(CallbackQueryHandler(twr_pick, pattern=r"Project", pass_user_data=True))
-    dp.add_handler(RegexHandler('\d+', twr_stake, pass_user_data=True))
+    dp.add_handler(RegexHandler('^[1-2]?[0-9]$|^2[0]$', twr_stake, pass_user_data=True))
     dp.add_handler(RegexHandler('^Start the Game$', twr_start, pass_user_data=True))
     dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
-    dp.add_handler(RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email , pass_user_data=True))
-    dp.add_handler(RegexHandler('\d+', twr_stake, pass_user_data=True))
+
+
 
     # log all errors
     dp.add_error_handler(error)
