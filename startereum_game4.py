@@ -128,7 +128,7 @@ def checkUser(bot, update, user_data):
         wave4_mining['frnd_email']=c[14]
         wave4_mining['mine_text']=c[15]
 
-        print('Returning user')
+        print('Returning user', (user_data))
 
     else:
         cur.execute('''INSERT OR IGNORE INTO userdata (id, firstname, username) VALUES (?, ?, ?)''', \
@@ -222,9 +222,9 @@ match_game_photos = ['https://docs.google.com/drawings/d/e/2PACX-1vQX1mRsidYvG_y
     'https://docs.google.com/drawings/d/e/2PACX-1vSkfxq6n5bFI6iNgFgjMBwPira45A-sZA-krBPBkn4utUxwnUnOlPME2R3cvzRJBh9wA2KzRzva45o5/pub?w=960&h=720',
     'https://docs.google.com/drawings/d/e/2PACX-1vTOlb_Z7P2heP5_BGvPzykQgUPmxLxW9b54oFmXWBFfZ94QF5J87Z2tEbezyPFneEWhMOQkq1CJM43r/pub?w=960&h=720']
 
-gk_qs = ['To win a 2 token bonus, select the right answer to the question: What is sharding?\n\nA: It is not polite.\nB: Splitting a blockchain into pieces.\nC: Failing to record a state change.\nD: Betting against a cryptoasset.',
-'To win a 2 token bonus, select the right answer to the question: What is segwit?\n\nA: Birth of Bitcoin Talk.\nB: Decrease in mining reward.\nC: Scooters on blockchain.\n D: A way to increase block size.',
-'To win a 2 token bonus, select the right option to complete the sentence: Critics say the problem with Delegated Proof of Stake (DPoS) is that\n\nA: It uses too much energy.\nB: It has low transaction frequency.\nC: It is prone to corruption.\nD: It is non-falsifiable.']
+gk_qs = ['GK 1: To win a 2 token bonus, select the right answer to the question: What is sharding?\n\nA: It is not polite.\nB: Splitting a blockchain into pieces.\nC: Failing to record a state change.\nD: Betting against a cryptoasset.',
+'GK 2:To win a 2 token bonus, select the right answer to the question: What is segwit?\n\nA: Birth of Bitcoin Talk.\nB: Decrease in mining reward.\nC: Scooters on blockchain.\n D: A way to increase block size.',
+'GK 3:To win a 2 token bonus, select the right option to complete the sentence: Critics say the problem with Delegated Proof of Stake (DPoS) is that\n\nA: It uses too much energy.\nB: It has low transaction frequency.\nC: It is prone to corruption.\nD: It is non-falsifiable.']
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -339,7 +339,7 @@ def match_start(bot, update, user_data):
         bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[6])
 
     elif wave4_mining.get('mine_pick') is None:
-        update.effective_message.reply_text(text='How did you enjoy this game set? I feel:\n\nA: Pumped, I think I made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
+        update.effective_message.reply_text(text='This ends the staking games.\n\nHow did you enjoy this game set? I feel:\n\nA: Pumped, I think I made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
 
     elif wave4_mining.get('priv_pick') is None:
         update.effective_message.reply_text(text='If you win big can we publish your name and winnings to the Leaderboard?\n\nA: Sure\nB: Yes, but use my telegram username\nC: Yes, but only name, not winnings\nD: Dont publish anything.',reply_markup=mcq_markup)
@@ -582,6 +582,7 @@ def mining_handler (bot, update, user_data):
         text = 1
         category = 'verify1_token'
         update_mining(category, text, update)
+        time.sleep(5)
         match_start(bot, update, user_data)
 
 
@@ -653,7 +654,7 @@ def error(bot, update, error):
 
 def main():
     # Create the Updater and pass it your bot's token.
-    updater = Updater("TOKEN")
+    updater = Updater("604744099:AAHImp03yylJO8Qjod3bfhEw5AmmV2fDK4w")
     print("Connection to Telegram established; starting bot.")
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
