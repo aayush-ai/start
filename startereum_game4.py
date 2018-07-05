@@ -12,6 +12,7 @@ user_data = {}
 wave4_twr_pick = {}
 wave4_twr_stake = {}
 wave4_mining = {}
+
 def loadDB():
     # Creates SQLite database to store info.
     conn = sqlite3.connect('startereum_master2.sqlite', timeout=10)
@@ -79,16 +80,16 @@ def checkUser(bot, update, user_data):
 
 
     if len(cur.execute('''SELECT id FROM userdata WHERE id = ?
-            ''', (update.effective_message.from_user.id,)).fetchall())>0:
+            ''', (update.effective_user.id,)).fetchall())>0:
         #this loads the relevant columns in a list # impliment a better DRY loop
         c=cur.execute('''SELECT firstname, email, username FROM userdata WHERE id = ?''',
-        (update.effective_message.from_user.id,)).fetchone()
+        (update.effective_user.id,)).fetchone()
         user_data['firstname']=c[0]
         user_data['email']=c[1]
         user_data['username']=c[2]
 
         c=cur.execute('''SELECT match1_pick, match2_pick, match3_pick, match4_pick, match5_pick, match6_pick, match7_pick
-        FROM wave_4_twr WHERE id = ?''', (update.effective_message.from_user.id,)).fetchone()
+        FROM wave_4_twr WHERE id = ?''', (update.effective_user.id,)).fetchone()
         wave4_twr_pick['match1_pick']=c[0]
         wave4_twr_pick['match2_pick']=c[1]
         wave4_twr_pick['match3_pick']=c[2]
@@ -97,8 +98,8 @@ def checkUser(bot, update, user_data):
         wave4_twr_pick['match6_pick']=c[5]
         wave4_twr_pick['match7_pick']=c[6]
 
-        c=cur.execute('''SELECT match1_stake, match2_stake, match3_pick, match3_stake, match4_pick, match4_stake, match5_pick, match5_stake, match6_pick, match6_stake, match7_pick, match7_stake, total_balance
-        FROM wave_4_twr WHERE id = ?''', (update.effective_message.from_user.id,)).fetchone()
+        c=cur.execute('''SELECT match1_stake, match2_stake, match3_stake, match4_stake, match5_stake,match6_stake, match7_stake, total_balance
+        FROM wave_4_twr WHERE id = ?''', (update.effective_user.id,)).fetchone()
         wave4_twr_stake['match1_stake']=c[0]
         wave4_twr_stake['match2_stake']=c[1]
         wave4_twr_stake['match3_stake']=c[2]
@@ -109,7 +110,7 @@ def checkUser(bot, update, user_data):
         wave4_twr_stake['total_balance']=c[7]
 
         c=cur.execute('''SELECT match3_mine, match3_mine_token, gk1_pick, gk1_token, verify1_text, verify1_token, match5_mine, match5_mine_token, gk2_pick, gk2_token, gk3_pick, gk3_token, mine_pick, priv_pick, frnd_email, mine_text
-        FROM wave_4_mining WHERE id = ?''', (update.effective_message.from_user.id,)).fetchone()
+        FROM wave_4_mining WHERE id = ?''', (update.effective_user.id,)).fetchone()
         wave4_mining['match3_mine']=c[0]
         wave4_mining['match3_mine_token']=c[1]
         wave4_mining['gk1_pick']=c[2]
@@ -131,11 +132,11 @@ def checkUser(bot, update, user_data):
 
     else:
         cur.execute('''INSERT OR IGNORE INTO userdata (id, firstname, username) VALUES (?, ?, ?)''', \
-        (update.effective_message.from_user.id, update.effective_message.from_user.first_name, update.effective_message.from_user.username,))
+        (update.effective_user.id, update.effective_user.first_name, update.effective_user.username,))
         cur.execute('''INSERT OR IGNORE INTO wave_4_twr (id) VALUES (?)''', \
-        (update.effective_message.from_user.id,))
+        (update.effective_user.id,))
         cur.execute('''INSERT OR IGNORE INTO wave_4_mining (id) VALUES (?)''', \
-        (update.effective_message.from_user.id,))
+        (update.effective_user.id,))
 
 
         print('New user')
@@ -150,7 +151,7 @@ def updateUser(category, text, update):
     conn.text_factory = str
     # Update SQLite database as needed.
     cur.execute('''UPDATE OR IGNORE userdata SET {} = ? WHERE id = ?'''.format(category), \
-        (text, update.effective_message.from_user.id,))
+        (text, update.effective_user.id,))
     print ('Updated')
     conn.commit()
     conn.close()
@@ -158,12 +159,28 @@ def updateUser(category, text, update):
 
 def update_twr(category, text, update):
     # Updates user info as inputted.
+
     conn = sqlite3.connect('startereum_master2.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
+
     # Update SQLite database as needed.
     cur.execute('''UPDATE OR IGNORE wave_4_twr SET {} = ? WHERE id = ?'''.format(category), \
-        (text, update.message.from_user.id,))
+        (text, update.effective_user.id,))
+    print ('Complete')
+    conn.commit()
+    conn.close()
+
+def update_stake(category, text, update):
+    # Updates user info as inputted.
+
+    conn = sqlite3.connect('startereum_master2.sqlite')
+    cur = conn.cursor()
+    conn.text_factory = str
+
+    # Update SQLite database as needed.
+    cur.execute('''UPDATE OR IGNORE wave_4_twr SET {} = ? WHERE id = ?'''.format(category), \
+        (text, update.effective_user.id,))
     print (category, text)
     conn.commit()
     conn.close()
@@ -176,7 +193,7 @@ def update_mining(category, text, update):
     conn.text_factory = str
     # Update SQLite database as needed.
     cur.execute('''UPDATE OR IGNORE wave4_feeback SET {} = ? WHERE id = ?'''.format(category), \
-        (text, update.message.from_user.id,))
+        (text, update.effective_user.id,))
     print (category, text)
     conn.commit()
     conn.close()
@@ -268,20 +285,20 @@ def match_start(bot, update, user_data):
     mcq_markup = InlineKeyboardMarkup([[InlineKeyboardButton("Option A", callback_data='Option A'),InlineKeyboardButton("Option B", callback_data='Option B')],
                                         [InlineKeyboardButton("Option C", callback_data='Option C'),InlineKeyboardButton("Option D", callback_data='Option D')]])
 
-    if  wave4_twr_pick.get('match1_pick') is None:
+    if  wave4_twr_pick.get('match1_pick') == "Project A":
         update.effective_message.reply_text(text=match_game_questions[0], reply_markup=reply_markup_match)
         bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[0])
-    elif wave4_twr_pick.get('match1_pick') is None:
+    elif wave4_twr_pick.get('match2_pick') is 'Project B':
         update.effective_message.reply_text(text=match_game_questions[1], reply_markup=reply_markup_match)
         bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[1])
-    elif wave4_twr_pick[2] == None:
+    elif wave4_twr_pick.get('match3_pick') is None:
         update.effective_message.reply_text(text=match_game_questions[2], reply_markup=reply_markup_match)
         bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[2])
 
-    elif wave4_twr_mining['match3_mine'] == None:
+    elif wave4_mining.get('match3_mine') is None:
         update.effective_message.reply_text(text='Mining Game #1: To win a 1 token bonus, tell us why you made the previous selection?')
 
-    elif wave4_twr_mining['gk1_pick'] == None:
+    elif wave4_mining.get('gk1_pick') is None:
         update.effective_message.reply_text(text=gk_qs[0], reply_markup=mcq_markup)
 
     elif wave4_twr_pick[3] == None:
@@ -346,41 +363,110 @@ def match_pick(bot, update):
         category = 'match1_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        balance = wave4_twr_stake.get('total_balance')
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " + str(user_data.get('total_balance')) + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for: {}".format(text), reply_markup=markup2)
 
 
+    elif wave4_twr_pick.get('match2_pick') is None:
+        text = update.callback_query.data
+        category = 'match2_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif wave4_twr_pick.get('match3_pick') is None:
+        text = update.callback_query.data
+        category = 'match3_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = str(wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif wave4_twr_pick.get('match4_pick') is None:
+        text = update.callback_query.data
+        category = 'match4_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = str(wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif wave4_twr_pick.get('match5_pick') is None:
+        text = update.callback_query.data
+        category = 'match5_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = str(wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif wave4_twr_pick.get('match6_pick') is None:
+        text = update.callback_query.data
+        category = 'match6_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = str(wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+
+    elif wave4_twr_pick.get('match7_pick') is None:
+        text = update.callback_query.data
+        category = 'match7_pick'
+        wave4_twr_pick[category] = text
+        update_twr(category, text, update)
+        balance = str(wave4_twr_stake.get('total_balance'))
+        markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
+        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
 
 
 #REGEX_HANDLERS
 #for token_stake
-def match_stake(bot, update, wave4_twr_stake):
+def match_stake(bot, update):
 
     checkUser(bot, update, user_data)
     text = update.message.text
-    for i in range[6]:
-        if wave4_twr_stake[i] == 0:
-            category = 'wave4_twr_stake[i]'
-            wave4_twr_stake[category] = text
+
+    if wave4_twr_stake.get['match1_stake'] is 0:
+        category = 'match1_stake'
+        wave4_twr_stake[category] = text
+        update_twr(category, text, update)
+
+        if update_twr(category, text, update) == "Complete":
+            text = update.message.text
+            total = wave4_twr_stake.get('total_balance')
+            last_stake = int(text)
+            text = total - last_stake
+            category = 'total_balance'
+            wave4_twr_stake['total_balance'] = text
             update_twr(category, text, update)
+            match_start(bot, update, user_data)
 
-            if update_twr(category, text, update) == "Complete":
+    elif wave4_twr_stake.get['match2_stake'] is 0:
+        category = 'match2_stake'
+        wave4_twr_stake[category] = text
+        update_twr(category, text, update)
 
-                total = int(wave4_twr_stake['total_balance'])
-                last_stake = int(text)
-                text = total - last_stake
-                category = 'total_balance'
-                user_data['total_balance'] = text
-                update_twr(category, text, update)
-                match_start(bot, update, user_data, wave4_twr_pick, wave4_twr_mining)
+        if update_twr(category, text, update) == "Complete":
+            text = update.message.text
+            total = wave4_twr_stake.get('total_balance')
+            last_stake = int(text)
+            text = total - last_stake
+            category = 'total_balance'
+            wave4_twr_stake['total_balance'] = text
+            update_twr(category, text, update)
+            match_start(bot, update, user_data)
 
 
 
-def mining_handler (bot, update, wave4_mining):
+def mining_handler (bot, update):
 
     checkUser(bot, update, user_data)
 
-    if wave4_mining['match3_mine'] == None:
+    if wave4_mining.get('match3_mine') is None:
         text = update.message.text
         category = 'match3_mine'
         update_mining(category, text, update)
@@ -503,7 +589,7 @@ def main():
     dp.add_handler(RegexHandler('^[1-2]?[3-9]$|^2[0]$', match_stake, pass_user_data=True))
     dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
     dp.add_handler(RegexHandler('^Start the Game$', match_start, pass_user_data=True))
-    dp.add_handler(RegexHandler('w+', mining_handler, pass_user_data=True))
+    dp.add_handler(RegexHandler('\w+', mining_handler, pass_user_data=True))
 
     # log all errors
     dp.add_error_handler(error)
