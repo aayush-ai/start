@@ -2,7 +2,7 @@
 #attempt 1: serverless lambda, and dynamodb: issues with webhook and telegram api
 #attempt 2: ec2 and sqlite: issues with concurrent calls and dB locks
 #attemp 3: moving to PostGres
-#this file represents a full game set:
+#this file represents a full match set:
 #### SQLITE BRANCH ####
 ## try sleep, if sleep works chek if update successful
 ##
@@ -15,10 +15,10 @@ wave4_mining = {}
 
 def loadDB():
     # Creates SQLite database to store info.
-    conn = sqlite3.connect('startereum_master3.sqlite', timeout=10)
+    conn = sqlite3.connect('startereum_master8.sqlite', timeout=10)
     cur = conn.cursor()
     conn.text_factory = str
-    # 3 tables: userdata, match_matches, mining_games,
+    # 3 tables: userdata, match_matches, mining_matchs,
     cur.executescript('''CREATE TABLE IF NOT EXISTS userdata
     (
     id INTEGER PRIMARY KEY UNIQUE,
@@ -74,7 +74,7 @@ def checkUser(bot, update, user_data):
     # Checks if user has visited the bot before
     # If yes, load data of user
     # If no, then create a new entry in database
-    conn = sqlite3.connect('startereum_master3.sqlite')
+    conn = sqlite3.connect('startereum_master8.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -146,7 +146,7 @@ def checkUser(bot, update, user_data):
 
 def updateUser(category, text, update):
     # Updates user info as inputted.
-    conn = sqlite3.connect('startereum_master3.sqlite')
+    conn = sqlite3.connect('startereum_master8.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
     # Update SQLite database as needed.
@@ -160,7 +160,7 @@ def updateUser(category, text, update):
 def update_twr(category, text, update):
     # Updates user info as inputted.
 
-    conn = sqlite3.connect('startereum_master3.sqlite')
+    conn = sqlite3.connect('startereum_master8.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -174,7 +174,7 @@ def update_twr(category, text, update):
 def update_stake(category, text, update):
     # Updates user info as inputted.
 
-    conn = sqlite3.connect('startereum_master3.sqlite')
+    conn = sqlite3.connect('startereum_master8.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -188,7 +188,7 @@ def update_stake(category, text, update):
 
 def update_mining(category, text, update):
     # Updates user info as inputted.
-    conn = sqlite3.connect('startereum_master3.sqlite')
+    conn = sqlite3.connect('startereum_master8.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
     # Update SQLite database as needed.
@@ -205,26 +205,27 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, RegexHandler, MessageHandler, Filters, ConversationHandler
 import logging, time
 import re
-## declare all the list of all games in a game set.
-match_game_questions= ['Match 1: Which project is more innovative?',
-    'Match 2: Which project is more likely to execute its vision? ',
-    'Match 3: Which project appears more credible?',
-    'Match 4: Which project is more innovative?',
-    'Match 5: Which project is more likely to execute its vision?',
-    'Match 6: Which project appears more credible?',
-    'Match 7: Which project is more likely to execute its vision?']
+## declare all the list of all matchs in a match set.
+match_match_questions= ['Game 1: Which project is more innovative?',
+    'Game 2: Which project is more likely to execute its vision? ',
+    'Game 3: Which project appears more credible?',
+    'Game 5: Which project is more innovative?',
+    'Game 7: Which project is more likely to execute its vision?',
+    'Game 9: Which project appears more credible?',
+    'Game 11: Which project is more likely to execute its vision?']
 
-match_game_photos = ['https://docs.google.com/drawings/d/e/2PACX-1vQX1mRsidYvG_yX6xxKziZpl9I6aOv69dJ_zoKKfaBWqOuLQabTwWnogidWCxox-CVIKeg2R6Pv8OlL/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vS-9DriXrKG7eX1P7UPeMQq-K7hqP8FmrhrO13QodCcD4-xu8IgJ_eBJieEobta3FYbCuBXRAWiQkjm/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vT5r7zia0xewHls11ET4u9OSmErWKwDn1PNJwX_YwowawI0xRn391LxdQSCI1UG6rB2JCUSQKBqJz5Y/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vQ8wUF0CNqgQv6TSXHKYRupOAP1Hm5TkLgtAsQEjrH-Dymwir7biqEuMEBJmEpDxYg6DpVri-hTrtAW/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vTm7BAwz2uJdyToHDqzBGz7ahjlz-0A-f5piFTtuxIy5YCgSgBfSYYgVOuVwnaNQ58qEIJHVsuv1J0l/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vSkfxq6n5bFI6iNgFgjMBwPira45A-sZA-krBPBkn4utUxwnUnOlPME2R3cvzRJBh9wA2KzRzva45o5/pub?w=960&h=720',
-    'https://docs.google.com/drawings/d/e/2PACX-1vTOlb_Z7P2heP5_BGvPzykQgUPmxLxW9b54oFmXWBFfZ94QF5J87Z2tEbezyPFneEWhMOQkq1CJM43r/pub?w=960&h=720']
+match_match_photos = ['https://docs.google.com/drawings/d/e/2PACX-1vRMhMrgSYyzMMRy6yeMIO2s4tiowDIF_jlz5YFgG0W_n6cMtrQmax8IalCgm09irTt_CQfl2PNELIxr/pub?w=1436&h=942',
+'https://docs.google.com/drawings/d/e/2PACX-1vQ6ky7TyqJURoAOYH_EjoiZEQEo2WID0r3LpBj1Oqh_uwR4kebyNgVq5uADtGb5uv5QZZn8NHbeuhbp/pub?w=1430&h=942',
+'https://docs.google.com/drawings/d/e/2PACX-1vT-JmUzolHLeKNtbMcFUCvAH418M1vEsG6roH7b6DsdUVTYK-lojovid-YALMNhE9at2QPgUUFqK_4s/pub?w=1432&h=939',
+'https://docs.google.com/drawings/d/e/2PACX-1vQ3gXL36QPx1YR-9vjkBlAzlOpJlRkN-6WKMR7jO3ZVnuLwrpMxAnpNH8UTWJua60NSixDqG5FNuEPZ/pub?w=1433&h=940',
+'https://docs.google.com/drawings/d/e/2PACX-1vTlYa8a33WbF0WHDFUAZblwQQLgfqtzoXhIOZGLcdEOeR7G2PmAVmY0uJmxM_rSn8-LhCx8BJqytaJ6/pub?w=1434&h=942',
+'https://docs.google.com/drawings/d/e/2PACX-1vR6GjQKFELEZpi9NNMnr7igtl0BOkY4O94-bIb31I_mCQtvCgSz7Q-1RZU8ZjfBLXJrRzgHERUaRfGY/pub?w=1441&h=944',
+'https://docs.google.com/drawings/d/e/2PACX-1vQ5gfL_xfwWHC2t67x-4AaE0qxRBY6IIlmbGNQb2kKvr1nWV0qXnXp26jYiQs5DrFP4P1hpVQ3z5ji7/pub?w=1443&h=944']
 
-gk_qs = ['GK 1: To win a 2 token bonus, select the right answer to the question: What is sharding?\n\nA: It is not polite.\nB: Splitting a blockchain into pieces.\nC: Failing to record a state change.\nD: Betting against a cryptoasset.',
-'GK 2:To win a 2 token bonus, select the right answer to the question: What is segwit?\n\nA: Birth of Bitcoin Talk.\nB: Decrease in mining reward.\nC: Scooters on blockchain.\n D: A way to increase block size.',
-'GK 3:To win a 2 token bonus, select the right option to complete the sentence: Critics say the problem with Delegated Proof of Stake (DPoS) is that\n\nA: It uses too much energy.\nB: It has low transaction frequency.\nC: It is prone to corruption.\nD: It is non-falsifiable.']
+
+gk_qs = ['Game 4: To win a 2 token bonus, select the right answer to the question: What is sharding?\n\nA: It is not polite.\nB: Splitting a blockchain into pieces.\nC: Failing to record a state change.\nD: Betting against a cryptoasset.',
+'Game 8: To win a 2 token bonus: What is segwit?\n\nA: Birth of Bitcoin Talk.\nB: Decrease in mining reward.\nC: Scooters on blockchain.\nD: A way to increase block size.',
+'Game 10: To win a 2 token bonus: Critics say the problem with Delegated Proof of Stake (DPoS) is that\n\nA: It uses too much energy.\nB: It has low transaction frequency.\nC: It is prone to corruption.\nD: It is non-falsifiable.']
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -232,7 +233,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-#there are three types of games in this set match, GK, mining. match  & GK emits a callback_query,
+#there are three types of matchs in this set match, GK, mining. match  & GK emits a callback_query,
 #while mining and tokens are keyboard inputs.
 
 def start(bot, update, user_data):
@@ -242,17 +243,18 @@ def start(bot, update, user_data):
     if user_data.get('email') is None:
 
 
-#this is the primary body of the game session
+#this is the primary body of the match session
 
         update.effective_message.reply_text("Hola Cypherpunk!\n\nEnter your email ID to receive your playing balance:")
 
     else:
-        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the Game'],['Player Profile']], one_time_keyboard=True)
+        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'],['Player Profile']], one_time_keyboard=True)
         update.effective_message.reply_text("Welcome back, {}!\nAre you ready for another go?".format(update.effective_user.first_name),reply_markup=markup_main)
 
 def email(bot, update, user_data):
+
     if user_data.get('email') is None:
-        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the Game'], ['Player Profile']], one_time_keyboard=True)
+        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'], ['Player Profile']], one_time_keyboard=True)
         text = update.effective_message.text
         category = 'email'
         user_data[category] = text
@@ -268,18 +270,18 @@ def email(bot, update, user_data):
 
 
 def how_play(bot,update, user_data):
-    markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the Game'], ['Player Profile']], one_time_keyboard=True)
+    markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'], ['Player Profile']], one_time_keyboard=True)
     text = update.effective_message.text
     if text == 'How to Play':
         update.effective_message.reply_text(text= "{}, let's review the basics. Hit start when done!".format(update.effective_user.first_name),reply_markup=markup_main)
         bot.sendDocument(chat_id=update.effective_message.chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
 
-#game loop starts here:
+#match loop starts here:
 
 def match_start(bot, update, user_data):
 
-    global match_game_questions
-    global match_game_photos
+    global match_match_questions
+    global match_match_photos
     reply_markup_match = InlineKeyboardMarkup([[InlineKeyboardButton("Project A", callback_data='Project A'),InlineKeyboardButton("Project B", callback_data='Project B')]])
     markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
     checkUser(bot, update, user_data)
@@ -289,17 +291,21 @@ def match_start(bot, update, user_data):
     if  wave4_twr_pick.get('match1_pick') is None:
         bot.send_message(update.effective_message.chat_id, text = 'Okay we are live now!\n\n')
         time.sleep(2)
-        update.effective_message.reply_text(text=match_game_questions[0], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[0])
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[0])
+        update.effective_message.reply_text(text=match_match_questions[0], reply_markup=reply_markup_match)
+
     elif wave4_twr_pick.get('match2_pick') is None:
-        update.effective_message.reply_text(text=match_game_questions[1], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[1])
+
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[1])
+        update.effective_message.reply_text(text=match_match_questions[1], reply_markup=reply_markup_match)
+
     elif wave4_twr_pick.get('match3_pick') is None:
-        update.effective_message.reply_text(text=match_game_questions[2], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[2])
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[2])
+        update.effective_message.reply_text(text=match_match_questions[2], reply_markup=reply_markup_match)
+
 
     elif wave4_mining.get('match3_mine') is None:
-        update.effective_message.reply_text(text='Mining Game #1: To win a 1 token bonus, tell us why you made the previous selection?')
+        update.effective_message.reply_text(text='To win a 1 token bonus, tell us why you made the previous selection?')
 
     elif wave4_mining.get('gk1_pick') is None:
         update.effective_message.reply_text(text=gk_qs[0], reply_markup=mcq_markup)
@@ -307,18 +313,21 @@ def match_start(bot, update, user_data):
     elif wave4_twr_pick.get('match4_pick') is None:
         bot.send_message(update.effective_message.chat_id, text = 'Sharding is the process of splitting a blockchain into multiple data fragments.\n\n')
         time.sleep(2)
-        update.effective_message.reply_text(text=match_game_questions[3], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[3])
+
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[3])
+        update.effective_message.reply_text(text=match_match_questions[3], reply_markup=reply_markup_match)
 
     elif wave4_mining.get('verify1_text') is None:
-        update.effective_message.reply_text(text='Mining Game #2: To win a 1 token bonus, organize the text fragments below into a simple sentence:\n\n"brown lazy over fox quick dog jumped the the"')
+        bot.send_photo(update.effective_message.chat_id, photo='https://techcoins.net/wp-content/uploads/2017/10/smart_contract.png')
+        update.effective_message.reply_text(text='Game 6: Explain this diagram in a simple sentence:')
 
     elif wave4_twr_pick.get('match5_pick') is None:
-        update.effective_message.reply_text(text=match_game_questions[4], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[4])
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[4])
+        update.effective_message.reply_text(text=match_match_questions[4], reply_markup=reply_markup_match)
+
 
     elif wave4_mining.get('match5_mine') is None:
-        update.effective_message.reply_text(text='Mining Game #3: To win a 1 token bonus, tell us why you made previous selection?')
+        update.effective_message.reply_text(text='To win a 1 token bonus, tell us what is wrong or bad with the project you did NOT select.')
 
     elif wave4_mining.get('gk2_pick') is None:
         update.effective_message.reply_text(text=gk_qs[1], reply_markup=mcq_markup)
@@ -326,8 +335,9 @@ def match_start(bot, update, user_data):
     elif wave4_twr_pick.get('match6_pick')  is None:
         bot.send_message(update.effective_message.chat_id, text = 'Segwit is a means of increasing block size.\n\n')
         time.sleep(2)
-        update.effective_message.reply_text(text=match_game_questions[5], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[5])
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[5])
+        update.effective_message.reply_text(text=match_match_questions[5], reply_markup=reply_markup_match)
+
 
     elif wave4_mining.get('gk3_pick') is None:
         update.effective_message.reply_text(text=gk_qs[2], reply_markup=mcq_markup)
@@ -335,27 +345,32 @@ def match_start(bot, update, user_data):
     elif wave4_twr_pick.get('match7_pick')  is None:
         bot.send_message(update.effective_message.chat_id, text = 'Delegated Proof of Stake may lead to corruption, autonomy or human error on the part of the delegate.\n\n')
         time.sleep(2)
-        update.effective_message.reply_text(text=match_game_questions[6], reply_markup=reply_markup_match)
-        bot.send_photo(update.effective_message.chat_id, photo=match_game_photos[6])
+
+        bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[6])
+        update.effective_message.reply_text(text=match_match_questions[6], reply_markup=reply_markup_match)
 
     elif wave4_mining.get('mine_pick') is None:
-        update.effective_message.reply_text(text='This ends the staking games.\n\nHow did you enjoy this game set? I feel:\n\nA: Pumped, I think I made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
+        update.effective_message.reply_text(text='This ends the staking matches.\n\nHow did you enjoy this match set? I feel:\n\nA: Pumped, made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
 
     elif wave4_mining.get('priv_pick') is None:
         update.effective_message.reply_text(text='If you win big can we publish your name and winnings to the Leaderboard?\n\nA: Sure\nB: Yes, but use my telegram username\nC: Yes, but only name, not winnings\nD: Dont publish anything.',reply_markup=mcq_markup)
 
     elif wave4_mining.get('frnd_email') is None:
-        update.effective_message.reply_text(text='To win a 10 token bonus, share this link with a friend who might enjoy playing it.\n\nhttp://bit.ly/2MP8ozf\n\nDO NOT FORGET to ENTER his or her email id HERE:')
+        update.effective_message.reply_text(text='To win an additional 10 tokens share the email of a friend who might enjoy playing this game:')
+
+
 
 
     elif wave4_mining.get('mine_text') is None:
-        bot.send_message(update.effective_message.chat_id, text = 'This game set is now concluded.\n\nIt may take us a few hours to collate responses and calculate final results.\n\n')
-        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the Game'], ['Player Profile']], one_time_keyboard=True)
+        bot.send_message(update.effective_message.chat_id, text = 'Please share this link with your friend.\n\nhttp://bit.ly/2MP8ozf')
+        time.sleep(10)
+        bot.send_message(update.effective_message.chat_id, text = 'This match set is now concluded.\n\nIt may take us a few hours to collate responses and calculate final results.\n\n')
+        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'], ['Player Profile']], one_time_keyboard=True)
         update.effective_message.reply_text(text='Any other thoughts,questions and feedback can be shared below:', reply_markup=markup_main)
 
     else:
 
-        bot.send_message(update.effective_message.chat_id, text = 'This game set is now concluded.\n\nThank you for playing. Decentralize together!')
+        bot.send_message(update.effective_message.chat_id, text = 'This match set is now concluded.\n\nThank you for playing. Decentralize together!')
 
 
 
@@ -368,9 +383,10 @@ def match_pick(bot, update):
         category = 'match1_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for: {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
 
     elif wave4_twr_pick.get('match2_pick') is None:
@@ -378,54 +394,60 @@ def match_pick(bot, update):
         category = 'match2_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
     elif wave4_twr_pick.get('match3_pick') is None:
         text = update.callback_query.data
         category = 'match3_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
     elif wave4_twr_pick.get('match4_pick') is None:
         text = update.callback_query.data
         category = 'match4_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
     elif wave4_twr_pick.get('match5_pick') is None:
         text = update.callback_query.data
         category = 'match5_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
     elif wave4_twr_pick.get('match6_pick') is None:
         text = update.callback_query.data
         category = 'match6_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
     elif wave4_twr_pick.get('match7_pick') is None:
         text = update.callback_query.data
         category = 'match7_pick'
         wave4_twr_pick[category] = text
         update_twr(category, text, update)
+        time.sleep(1)
         balance = str(wave4_twr_stake.get('total_balance'))
         markup2= ReplyKeyboardMarkup([[str(i) for i in range(6 * j + 3, 6 * j + 9)] for j in range(3)], one_time_keyboard=True)
-        update.callback_query.message.reply_text(text="Token Left: " +  balance + "\n Please stake tokens for {}".format(text), reply_markup=markup2)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
 
 #REGEX_HANDLERS
@@ -513,7 +535,7 @@ def match_stake(bot, update, user_data):
         category = 'total_balance'
         wave4_twr_stake['total_balance'] = text
         update_twr(category, text, update)
-        time.sleep(2)
+
         match_start(bot, update, user_data)
 
     elif wave4_twr_stake.get('match6_stake') == 0:
@@ -577,12 +599,14 @@ def mining_handler (bot, update, user_data):
     elif wave4_mining.get('verify1_text') is None:
         text = update.message.text
         category = 'verify1_text'
+
         update_mining(category, text, update)
 
         text = 1
         category = 'verify1_token'
+
         update_mining(category, text, update)
-        time.sleep(5)
+        time.sleep(3)
         match_start(bot, update, user_data)
 
 
@@ -599,6 +623,8 @@ def gk_handler(bot, update):
         text = update.callback_query.data
         category = 'gk1_pick'
         update_mining(category, text, update)
+        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
+
 
 
         text = 2
@@ -640,12 +666,12 @@ def gk_handler(bot, update):
         match_start(bot, update, user_data)
 
 
-def profile (bot, update, user_data):
-    markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the Game'],['Player Profile']], one_time_keyboard=True)
-    update.effective_message.reply_text('{}, thanks for playing!\n\nThe profile with your earnings with be update post-result. Stay Tuned'.format(update.effective_user.first_name),reply_markup=markup_main)
+def profile(bot, update, user_data):
+    markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'],['Player Profile']], one_time_keyboard=True)
+    update.effective_message.reply_text('{}, thanks for playing!\n\nThe profile with your earnings with be updated post-result. Stay Tuned!'.format(update.effective_user.first_name),reply_markup=markup_main)
 
 
-
+def top_3(bot, update, user_data):
 
 
 def error(bot, update, error):
@@ -665,7 +691,7 @@ def main():
     dp.add_handler(CallbackQueryHandler(gk_handler, pattern=r"Option"))
     dp.add_handler(RegexHandler('^[1-2]?[3-9]$|^2[0]$', match_stake, pass_user_data=True))
     dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
-    dp.add_handler(RegexHandler('^Start the Game$', match_start, pass_user_data=True))
+    dp.add_handler(RegexHandler('^Start the game$', match_start, pass_user_data=True))
     dp.add_handler(RegexHandler('^Player Profile$', profile, pass_user_data=True))
     dp.add_handler(RegexHandler('\w+', mining_handler, pass_user_data=True))
 
