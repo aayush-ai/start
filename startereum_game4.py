@@ -15,7 +15,7 @@ wave4_mining = {}
 
 def loadDB():
     # Creates SQLite database to store info.
-    conn = sqlite3.connect('startereum_master8.sqlite', timeout=10)
+    conn = sqlite3.connect('startereum_master16.sqlite', timeout=10)
     cur = conn.cursor()
     conn.text_factory = str
     # 3 tables: userdata, match_matches, mining_matchs,
@@ -62,6 +62,7 @@ def loadDB():
     gk2_token INTEGER DEFAULT 0,
     gk3_pick TEXT,
     gk3_token INTEGER DEFAULT 0,
+    top3_pick TEXT,
     mine_pick TEXT,
     priv_pick TEXT,
     frnd_email TEXT,
@@ -74,7 +75,7 @@ def checkUser(bot, update, user_data):
     # Checks if user has visited the bot before
     # If yes, load data of user
     # If no, then create a new entry in database
-    conn = sqlite3.connect('startereum_master8.sqlite')
+    conn = sqlite3.connect('startereum_master16.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -109,7 +110,7 @@ def checkUser(bot, update, user_data):
         wave4_twr_stake['match7_stake']=c[6]
         wave4_twr_stake['total_balance']=c[7]
 
-        c=cur.execute('''SELECT match3_mine, match3_mine_token, gk1_pick, gk1_token, verify1_text, verify1_token, match5_mine, match5_mine_token, gk2_pick, gk2_token, gk3_pick, gk3_token, mine_pick, priv_pick, frnd_email, mine_text
+        c=cur.execute('''SELECT match3_mine, match3_mine_token, gk1_pick, gk1_token, verify1_text, verify1_token, match5_mine, match5_mine_token, gk2_pick, gk2_token, gk3_pick, gk3_token, top3_pick, mine_pick, priv_pick, frnd_email, mine_text
         FROM wave_4_mining WHERE id = ?''', (update.effective_user.id,)).fetchone()
         wave4_mining['match3_mine']=c[0]
         wave4_mining['match3_mine_token']=c[1]
@@ -123,10 +124,12 @@ def checkUser(bot, update, user_data):
         wave4_mining['gk2_token']=c[9]
         wave4_mining['gk3_pick']=c[10]
         wave4_mining['gk3_token']=c[11]
-        wave4_mining['mine_pick']=c[12]
-        wave4_mining['priv_pick']=c[13]
-        wave4_mining['frnd_email']=c[14]
-        wave4_mining['mine_text']=c[15]
+        wave4_mining['top3_pick']=c[12]
+        wave4_mining['mine_pick']=c[13]
+        wave4_mining['priv_pick']=c[14]
+        wave4_mining['frnd_email']=c[15]
+        wave4_mining['mine_text']=c[16]
+
 
         print('Returning user', (user_data))
 
@@ -146,7 +149,7 @@ def checkUser(bot, update, user_data):
 
 def updateUser(category, text, update):
     # Updates user info as inputted.
-    conn = sqlite3.connect('startereum_master8.sqlite')
+    conn = sqlite3.connect('startereum_master16.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
     # Update SQLite database as needed.
@@ -160,7 +163,7 @@ def updateUser(category, text, update):
 def update_twr(category, text, update):
     # Updates user info as inputted.
 
-    conn = sqlite3.connect('startereum_master8.sqlite')
+    conn = sqlite3.connect('startereum_master16.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -174,7 +177,7 @@ def update_twr(category, text, update):
 def update_stake(category, text, update):
     # Updates user info as inputted.
 
-    conn = sqlite3.connect('startereum_master8.sqlite')
+    conn = sqlite3.connect('startereum_master16.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
 
@@ -188,7 +191,7 @@ def update_stake(category, text, update):
 
 def update_mining(category, text, update):
     # Updates user info as inputted.
-    conn = sqlite3.connect('startereum_master8.sqlite')
+    conn = sqlite3.connect('startereum_master16.sqlite')
     cur = conn.cursor()
     conn.text_factory = str
     # Update SQLite database as needed.
@@ -274,7 +277,7 @@ def how_play(bot,update, user_data):
     text = update.effective_message.text
     if text == 'How to Play':
         update.effective_message.reply_text(text= "{}, let's review the basics. Hit start when done!".format(update.effective_user.first_name),reply_markup=markup_main)
-        bot.sendDocument(chat_id=update.effective_message.chat_id, document='https://media.giphy.com/media/2Yc0g11QsZ7vqxmzTn/giphy.gif')
+        bot.send_message(chat_id=update.effective_message.chat_id, text='Startereum is a fun way to test your knowledge about blockchain and crypto by staking and winning tokens.\n\n1. One single aspect of two competing projects will be displayed, side by side.\n2. Choose the better one.\n3. Now stake tokens based on your level of confidence. Token stakes range from 3 to 20.\n 4. Other fun games will appear from time to time, which will allow you to win tokens.\n\nGood luck!')
 
 #match loop starts here:
 
@@ -287,6 +290,8 @@ def match_start(bot, update, user_data):
     checkUser(bot, update, user_data)
     mcq_markup = InlineKeyboardMarkup([[InlineKeyboardButton("Option A", callback_data='Option A'),InlineKeyboardButton("Option B", callback_data='Option B')],
                                         [InlineKeyboardButton("Option C", callback_data='Option C'),InlineKeyboardButton("Option D", callback_data='Option D')]])
+    top3_markup = InlineKeyboardMarkup([[InlineKeyboardButton("A. Bancor", callback_data='Option A'),InlineKeyboardButton("B. SecureKey", callback_data='Option B')],
+    [InlineKeyboardButton("C. 0xProject", callback_data='Option C'),InlineKeyboardButton("D. None", callback_data='Option D')]])
 
     if  wave4_twr_pick.get('match1_pick') is None:
         bot.send_message(update.effective_message.chat_id, text = 'Okay we are live now!\n\n')
@@ -332,7 +337,7 @@ def match_start(bot, update, user_data):
     elif wave4_mining.get('gk2_pick') is None:
         update.effective_message.reply_text(text=gk_qs[1], reply_markup=mcq_markup)
 
-    elif wave4_twr_pick.get('match6_pick')  is None:
+    elif wave4_twr_pick.get('match6_pick') is None:
         bot.send_message(update.effective_message.chat_id, text = 'Segwit is a means of increasing block size.\n\n')
         time.sleep(2)
         bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[5])
@@ -342,35 +347,45 @@ def match_start(bot, update, user_data):
     elif wave4_mining.get('gk3_pick') is None:
         update.effective_message.reply_text(text=gk_qs[2], reply_markup=mcq_markup)
 
-    elif wave4_twr_pick.get('match7_pick')  is None:
+    elif wave4_twr_pick.get('match7_pick') is None:
         bot.send_message(update.effective_message.chat_id, text = 'Delegated Proof of Stake may lead to corruption, autonomy or human error on the part of the delegate.\n\n')
         time.sleep(2)
 
         bot.send_photo(update.effective_message.chat_id, photo=match_match_photos[6])
         update.effective_message.reply_text(text=match_match_questions[6], reply_markup=reply_markup_match)
 
-    elif wave4_mining.get('mine_pick') is None:
-        update.effective_message.reply_text(text='This ends the staking matches.\n\nHow did you enjoy this match set? I feel:\n\nA: Pumped, made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
 
-    elif wave4_mining.get('priv_pick') is None:
-        update.effective_message.reply_text(text='If you win big can we publish your name and winnings to the Leaderboard?\n\nA: Sure\nB: Yes, but use my telegram username\nC: Yes, but only name, not winnings\nD: Dont publish anything.',reply_markup=mcq_markup)
+    elif wave4_mining.get('top3_pick') is None:
+        bot.send_message(update.effective_message.chat_id, text = 'The game set is now concluded.\n\nYou won 9 tokens outright and got 2 out of 3 quiz questions right.')
+        time.sleep(2)
+        update.effective_message.reply_text(text = 'Your top three selections, based on token weightings, are below. Click to request info:', reply_markup=top3_markup)
+
 
     elif wave4_mining.get('frnd_email') is None:
         update.effective_message.reply_text(text='To win an additional 10 tokens share the email of a friend who might enjoy playing this game:')
 
 
 
+    elif wave4_mining.get('mine_pick') is None:
+
+        bot.send_message(update.effective_message.chat_id, text = 'Please share this link with your friend.\n\nhttp://bit.ly/2MP8ozf')
+        time.sleep(2)
+        update.effective_message.reply_text(text='How did you enjoy this match set? I feel:\n\nA: Pumped, made me some money!\nB: Stoked, learned me a bit.\nC: Chill, this was diverting.\nD: Bummed out, this stank.', reply_markup=mcq_markup)
+
+    elif wave4_mining.get('priv_pick') is None:
+
+        update.effective_message.reply_text(text='If you win big can we publish your name and winnings to the Leaderboard?\n\nA: Sure\nB: Yes, but use my telegram username\nC: Yes, but only name, not winnings\nD: Dont publish anything.',reply_markup=mcq_markup)
+
 
     elif wave4_mining.get('mine_text') is None:
-        bot.send_message(update.effective_message.chat_id, text = 'Please share this link with your friend.\n\nhttp://bit.ly/2MP8ozf')
-        time.sleep(10)
+
         bot.send_message(update.effective_message.chat_id, text = 'This match set is now concluded.\n\nIt may take us a few hours to collate responses and calculate final results.\n\n')
-        markup_main = ReplyKeyboardMarkup([['How to Play'],['Start the game'], ['Player Profile']], one_time_keyboard=True)
-        update.effective_message.reply_text(text='Any other thoughts,questions and feedback can be shared below:', reply_markup=markup_main)
+        update.effective_message.reply_text(text='Any other thoughts, questions and feedback can be shared below:')
+
 
     else:
 
-        bot.send_message(update.effective_message.chat_id, text = 'This match set is now concluded.\n\nThank you for playing. Decentralize together!')
+        bot.send_message(update.effective_message.chat_id, text = 'See  you next time! It may take us a few hours to collate responses and calculate final results.\n\nThank you for playing. Decentralize together!')
 
 
 
@@ -463,7 +478,7 @@ def match_stake(bot, update, user_data):
         wave4_twr_stake[category] = text
         update_twr(category, text, update)
 
-
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -479,7 +494,7 @@ def match_stake(bot, update, user_data):
         wave4_twr_stake[category] = text
         update_twr(category, text, update)
 
-
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -496,6 +511,7 @@ def match_stake(bot, update, user_data):
         update_twr(category, text, update)
 
 
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -512,6 +528,7 @@ def match_stake(bot, update, user_data):
         update_twr(category, text, update)
 
 
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -528,6 +545,7 @@ def match_stake(bot, update, user_data):
         update_twr(category, text, update)
 
 
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -545,6 +563,7 @@ def match_stake(bot, update, user_data):
         update_twr(category, text, update)
 
 
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -560,7 +579,7 @@ def match_stake(bot, update, user_data):
         wave4_twr_stake[category] = text
         update_twr(category, text, update)
 
-
+        time.sleep(2)
         text = update.message.text
         total = wave4_twr_stake.get('total_balance')
         last_stake = int(text)
@@ -584,18 +603,6 @@ def mining_handler (bot, update, user_data):
         update_mining(category, text, update)
         match_start(bot, update, user_data)
 
-
-    elif wave4_mining.get('match5_mine') is None:
-        text = update.message.text
-        category = 'match5_mine'
-        update_mining(category, text, update)
-
-
-        text = 1
-        category = 'match5_mine_token'
-        update_mining(category, text, update)
-        match_start(bot, update, user_data)
-
     elif wave4_mining.get('verify1_text') is None:
         text = update.message.text
         category = 'verify1_text'
@@ -610,10 +617,25 @@ def mining_handler (bot, update, user_data):
         match_start(bot, update, user_data)
 
 
+    elif wave4_mining.get('match5_mine') is None:
+        text = update.message.text
+        category = 'match5_mine'
+        update_mining(category, text, update)
+
+
+        text = 1
+        category = 'match5_mine_token'
+        update_mining(category, text, update)
+        match_start(bot, update, user_data)
+
+
+
+
     elif wave4_mining.get('mine_text') is None:
         text = update.message.text
         category = 'mine_text'
         update_mining(category, text, update)
+
         match_start(bot, update, user_data)
 
 
@@ -623,13 +645,13 @@ def gk_handler(bot, update):
         text = update.callback_query.data
         category = 'gk1_pick'
         update_mining(category, text, update)
-        update.callback_query.message.reply_text(text="Stake your tokens for {} (Balance: ".format(text) + balance + ")", reply_markup=markup2)
 
 
 
         text = 2
         category = 'gk1_token'
         update_mining(category, text, update)
+
         match_start(bot, update, user_data)
 
     elif wave4_mining.get('gk2_pick') is None:
@@ -653,6 +675,14 @@ def gk_handler(bot, update):
         update_mining(category, text, update)
         match_start(bot, update, user_data)
 
+    elif wave4_mining.get('top3_pick') is None:
+        text = update.callback_query.data
+        category = 'top3_pick'
+        update_mining(category, text, update)
+        time.sleep(2)
+        match_start(bot, update, user_data)
+
+
     elif wave4_mining.get('mine_pick') is None:
         text = update.callback_query.data
         category = 'mine_pick'
@@ -671,7 +701,6 @@ def profile(bot, update, user_data):
     update.effective_message.reply_text('{}, thanks for playing!\n\nThe profile with your earnings with be updated post-result. Stay Tuned!'.format(update.effective_user.first_name),reply_markup=markup_main)
 
 
-def top_3(bot, update, user_data):
 
 
 def error(bot, update, error):
@@ -689,7 +718,7 @@ def main():
     dp.add_handler(RegexHandler('(\w+[.|\w])*@(\w+[.])*\w+', email, pass_user_data=True))
     dp.add_handler(CallbackQueryHandler(match_pick, pattern=r"Project"))
     dp.add_handler(CallbackQueryHandler(gk_handler, pattern=r"Option"))
-    dp.add_handler(RegexHandler('^[1-2]?[3-9]$|^2[0]$', match_stake, pass_user_data=True))
+    dp.add_handler(RegexHandler('\d+', match_stake, pass_user_data=True))
     dp.add_handler(RegexHandler('^How to Play$', how_play, pass_user_data=True))
     dp.add_handler(RegexHandler('^Start the game$', match_start, pass_user_data=True))
     dp.add_handler(RegexHandler('^Player Profile$', profile, pass_user_data=True))
