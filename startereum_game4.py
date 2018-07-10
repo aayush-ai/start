@@ -709,7 +709,7 @@ def error(bot, update, error):
 
 def main():
     # Create the Updater and pass it your bot's token.
-    updater = Updater("604744099:AAHImp03yylJO8Qjod3bfhEw5AmmV2fDK4w")
+    updater = Updater("TToken")
     print("Connection to Telegram established; starting bot.")
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
